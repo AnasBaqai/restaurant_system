@@ -33,6 +33,7 @@ import {
 import { RootState } from "../../features/store";
 import { AppDispatch } from "../../features/store";
 import { Table, TableStatus, User } from "../../types";
+import { AxiosError } from "axios";
 
 interface TableFormData {
   tableNumber: number;
@@ -121,11 +122,13 @@ const Tables = () => {
       setSelectedTable(table);
       setSelectedStatus(table.status);
       setStatusDialog(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error checking table orders:", error);
       const errorMessage =
-        error.response?.data?.message ||
-        "Failed to check table status. Please try again.";
+        error instanceof AxiosError
+          ? error.response?.data?.message ||
+            "Failed to check table status. Please try again."
+          : "Failed to check table status. Please try again.";
       alert(errorMessage);
     }
   };

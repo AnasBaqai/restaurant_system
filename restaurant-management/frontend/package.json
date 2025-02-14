@@ -25,6 +25,7 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.1.5",
     "react-to-print": "^3.0.5",
+    "receiptline": "^1.16.2",
     "recharts": "^2.15.1"
   },
   "devDependencies": {
