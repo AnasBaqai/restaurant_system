@@ -1,0 +1,130 @@
+[
+  {
+    "name": "Classic Burger",
+    "description": "Juicy beef patty with lettuce, tomato, and special sauce",
+    "category": "Main Course",
+    "price": 12.99,
+    "preparationTime": 15,
+    "available": true,
+    "customizations": [
+      {
+        "name": "Cheese",
+        "options": [
+          {
+            "name": "Cheddar",
+            "price": 1.50
+          },
+          {
+            "name": "Swiss",
+            "price": 1.50
+          }
+        ]
+      },
+      {
+        "name": "Extra Toppings",
+        "options": [
+          {
+            "name": "Bacon",
+            "price": 2.00
+          },
+          {
+            "name": "Avocado",
+            "price": 1.50
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Caesar Salad",
+    "description": "Fresh romaine lettuce with parmesan, croutons, and caesar dressing",
+    "category": "Appetizers",
+    "price": 8.99,
+    "preparationTime": 10,
+    "available": true,
+    "customizations": [
+      {
+        "name": "Protein",
+        "options": [
+          {
+            "name": "Grilled Chicken",
+            "price": 4.00
+          },
+          {
+            "name": "Grilled Shrimp",
+            "price": 5.00
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Margherita Pizza",
+    "description": "Fresh mozzarella, tomatoes, and basil on thin crust",
+    "category": "Main Course",
+    "price": 14.99,
+    "preparationTime": 20,
+    "available": true,
+    "customizations": [
+      {
+        "name": "Size",
+        "options": [
+          {
+            "name": "Medium",
+            "price": 0
+          },
+          {
+            "name": "Large",
+            "price": 4.00
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Chocolate Lava Cake",
+    "description": "Warm chocolate cake with a molten center",
+    "category": "Desserts",
+    "price": 7.99,
+    "preparationTime": 15,
+    "available": true,
+    "customizations": [
+      {
+        "name": "Add-ons",
+        "options": [
+          {
+            "name": "Vanilla Ice Cream",
+            "price": 2.00
+          },
+          {
+            "name": "Whipped Cream",
+            "price": 1.00
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Iced Tea",
+    "description": "Fresh brewed tea served over ice",
+    "category": "Beverages",
+    "price": 2.99,
+    "preparationTime": 5,
+    "available": true,
+    "customizations": [
+      {
+        "name": "Flavor",
+        "options": [
+          {
+            "name": "Peach",
+            "price": 0.50
+          },
+          {
+            "name": "Raspberry",
+            "price": 0.50
+          }
+        ]
+      }
+    ]
+  }
+]

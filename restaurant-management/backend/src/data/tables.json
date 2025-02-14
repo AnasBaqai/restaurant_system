@@ -1,0 +1,32 @@
+[
+  {
+    "tableNumber": 1,
+    "capacity": 2,
+    "status": "available",
+    "lastCleaned": "2024-02-14T00:00:00.000Z"
+  },
+  {
+    "tableNumber": 2,
+    "capacity": 4,
+    "status": "available",
+    "lastCleaned": "2024-02-14T00:00:00.000Z"
+  },
+  {
+    "tableNumber": 3,
+    "capacity": 6,
+    "status": "available",
+    "lastCleaned": "2024-02-14T00:00:00.000Z"
+  },
+  {
+    "tableNumber": 4,
+    "capacity": 4,
+    "status": "available",
+    "lastCleaned": "2024-02-14T00:00:00.000Z"
+  },
+  {
+    "tableNumber": 5,
+    "capacity": 8,
+    "status": "available",
+    "lastCleaned": "2024-02-14T00:00:00.000Z"
+  }
+]

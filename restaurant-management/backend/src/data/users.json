@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Admin User",
+    "email": "admin@example.com",
+    "password": "$2a$12$Q0grHjH9PXc6SxivC8m12.2mZJ9BbKcgFpwSG4Y1ZEII8HJVzWeyS",
+    "role": "admin",
+    "active": true,
+    "lastLogin": "2024-02-14T00:00:00.000Z"
+  },
+  {
+    "name": "Manager User",
+    "email": "manager@example.com",
+    "password": "$2a$12$Q0grHjH9PXc6SxivC8m12.2mZJ9BbKcgFpwSG4Y1ZEII8HJVzWeyS",
+    "role": "manager",
+    "active": true
+  },
+  {
+    "name": "Waiter One",
+    "email": "waiter1@example.com",
+    "password": "$2a$12$Q0grHjH9PXc6SxivC8m12.2mZJ9BbKcgFpwSG4Y1ZEII8HJVzWeyS",
+    "role": "waiter",
+    "active": true
+  },
+  {
+    "name": "Waiter Two",
+    "email": "waiter2@example.com",
+    "password": "$2a$12$Q0grHjH9PXc6SxivC8m12.2mZJ9BbKcgFpwSG4Y1ZEII8HJVzWeyS",
+    "role": "waiter",
+    "active": true
+  },
+  {
+    "name": "Chef One",
+    "email": "chef1@example.com",
+    "password": "$2a$12$Q0grHjH9PXc6SxivC8m12.2mZJ9BbKcgFpwSG4Y1ZEII8HJVzWeyS",
+    "role": "chef",
+    "active": true
+  }
+]
