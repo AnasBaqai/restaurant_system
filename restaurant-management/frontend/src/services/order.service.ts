@@ -1,9 +1,6 @@
 import api from "./api";
 import { Order, OrderStatus, PaymentMethod, ApiResponse } from "../types";
 
-interface OrderResponse extends ApiResponse<{ orders: Order[] }> {}
-interface SingleOrderResponse extends ApiResponse<{ order: Order }> {}
-
 interface CreateOrderData {
   table: number;
   items: {
@@ -20,27 +17,34 @@ interface CreateOrderData {
 
 class OrderService {
   async createOrder(data: CreateOrderData): Promise<Order> {
-    const response = await api.post<SingleOrderResponse>("/orders", data);
+    const response = await api.post<ApiResponse<{ order: Order }>>(
+      "/orders",
+      data
+    );
     return response.data.data.order;
   }
 
   async getAllOrders(): Promise<Order[]> {
-    const response = await api.get<OrderResponse>("/orders");
+    const response = await api.get<ApiResponse<{ orders: Order[] }>>("/orders");
     return response.data.data.orders;
   }
 
   async getOrderById(id: string): Promise<Order> {
-    const response = await api.get<SingleOrderResponse>(`/orders/${id}`);
+    const response = await api.get<ApiResponse<{ order: Order }>>(
+      `/orders/${id}`
+    );
     return response.data.data.order;
   }
 
   async getMyOrders(): Promise<Order[]> {
-    const response = await api.get<OrderResponse>("/orders/my-orders");
+    const response = await api.get<ApiResponse<{ orders: Order[] }>>(
+      "/orders/my-orders"
+    );
     return response.data.data.orders;
   }
 
   async updateOrderStatus(id: string, status: OrderStatus): Promise<Order> {
-    const response = await api.patch<SingleOrderResponse>(
+    const response = await api.patch<ApiResponse<{ order: Order }>>(
       `/orders/${id}/status`,
       {
         status,
@@ -53,13 +57,60 @@ class OrderService {
     id: string,
     paymentMethod: PaymentMethod
   ): Promise<Order> {
-    const response = await api.patch<SingleOrderResponse>(
+    const response = await api.patch<ApiResponse<{ order: Order }>>(
       `/orders/${id}/payment`,
       {
         paymentMethod,
       }
     );
     return response.data.data.order;
+  }
+
+  async getReceipt(id: string): Promise<string> {
+    const response = await api.get<ApiResponse<{ receipt: string }>>(
+      `/orders/${id}/receipt`
+    );
+    const receipt = response.data.data.receipt;
+
+    // Create a hidden iframe to handle the print
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+
+    // Write the receipt content to the iframe
+    const doc = iframe.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(`
+            <html>
+                <head>
+                    <style>
+                        @page {
+                            margin: 0;
+                            size: 80mm 297mm;  /* Standard thermal paper width */
+                        }
+                        body {
+                            font-family: monospace;
+                            font-size: 12px;
+                            white-space: pre;
+                            margin: 0;
+                            padding: 0;
+                        }
+                    </style>
+                </head>
+                <body>${receipt}</body>
+            </html>
+        `);
+      doc.close();
+
+      // Print and remove the iframe
+      iframe.contentWindow?.print();
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 1000);
+    }
+
+    return receipt;
   }
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -28,7 +28,7 @@ import {
   Stack,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import PrintIcon from "@mui/icons-material/Print";
+import { Print as PrintIcon } from "@mui/icons-material";
 import {
   fetchOrders,
   updateOrderStatus,
@@ -37,6 +37,7 @@ import {
 import { RootState } from "../../features/store";
 import { AppDispatch } from "../../features/store";
 import { Order, OrderStatus, PaymentMethod } from "../../types";
+import orderService from "../../services/order.service";
 
 const Orders = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -46,7 +47,6 @@ const Orders = () => {
   const [paymentDialog, setPaymentDialog] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<PaymentMethod>(PaymentMethod.CASH);
-  const printComponentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     dispatch(fetchOrders());
@@ -88,10 +88,14 @@ const Orders = () => {
     }
   };
 
-  const handlePrintClick = useCallback((order: Order) => {
-    setSelectedOrder(order);
-    setTimeout(handlePrint, 500);
-  }, []);
+  const handlePrintReceipt = async (orderId: string) => {
+    try {
+      await orderService.getReceipt(orderId);
+    } catch (error) {
+      console.error("Error printing receipt:", error);
+      alert("Failed to print receipt. Please try again.");
+    }
+  };
 
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
@@ -199,9 +203,9 @@ const Orders = () => {
                       variant="outlined"
                       size="small"
                       startIcon={<PrintIcon />}
-                      onClick={() => handlePrintClick(order)}
+                      onClick={() => handlePrintReceipt(order._id)}
                     >
-                      Print
+                      Print Receipt
                     </Button>
                   </Stack>
                 </TableCell>

@@ -3,6 +3,7 @@ import { Order, OrderStatus } from "../models/order.model";
 import { MenuItem } from "../models/menu.model";
 import { Table, TableStatus } from "../models/table.model";
 import { AppError } from "../middleware/errorHandler";
+import { generateReceipt } from "../utils/receipt";
 
 // Create a new order
 export const createOrder = async (
@@ -348,6 +349,63 @@ export const getOrdersByWaiter = async (
       },
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+// Generate receipt for an order
+export const generateOrderReceipt = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    console.log("Generating receipt for order:", { orderId: req.params.id });
+
+    const order = await Order.findById(req.params.id)
+      .populate("items.menuItem", "name")
+      .populate("waiter", "name")
+      .lean();
+
+    if (!order) {
+      console.log("Order not found:", { orderId: req.params.id });
+      return next(new AppError("No order found with that ID", 404));
+    }
+
+    console.log("Found order data:", {
+      orderNumber: order.orderNumber,
+      items: order.items.map((item) => ({
+        menuItem: item.menuItem,
+        quantity: item.quantity,
+        subtotal: item.subtotal,
+      })),
+      waiter: order.waiter,
+      total: order.total,
+    });
+
+    try {
+      const receipt = generateReceipt(order as any);
+      console.log("Receipt generated successfully");
+
+      res.status(200).json({
+        status: "success",
+        data: {
+          receipt,
+        },
+      });
+    } catch (receiptError) {
+      console.error("Receipt generation failed:", {
+        error:
+          receiptError instanceof Error ? receiptError.message : receiptError,
+        orderData: order,
+      });
+      return next(new AppError("Failed to generate receipt", 500));
+    }
+  } catch (error) {
+    console.error("Error in generateOrderReceipt:", {
+      error: error instanceof Error ? error.message : error,
+      orderId: req.params.id,
+    });
     next(error);
   }
 };

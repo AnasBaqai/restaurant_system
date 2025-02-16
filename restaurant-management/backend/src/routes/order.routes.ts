@@ -7,6 +7,7 @@ import {
   processPayment,
   getOrdersByTable,
   getOrdersByWaiter,
+  generateOrderReceipt,
 } from "../controllers/order.controller";
 import { protect, restrictTo } from "../middleware/auth";
 import { UserRole } from "../models/user.model";
@@ -21,6 +22,7 @@ router.get("/", getAllOrders);
 router.get("/table/:tableNumber", getOrdersByTable);
 router.get("/waiter/:waiterId", getOrdersByWaiter);
 router.get("/:id", getOrder);
+router.get("/:id/receipt", generateOrderReceipt);
 
 // Routes for waiters and admin
 router.use(restrictTo(UserRole.WAITER, UserRole.ADMIN));
