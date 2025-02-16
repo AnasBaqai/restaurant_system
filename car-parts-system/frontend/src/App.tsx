@@ -20,6 +20,7 @@ import Dashboard from "./pages/Dashboard";
 import Parts from "./pages/parts/Parts";
 import Categories from "./pages/categories/Categories";
 import Orders from "./pages/orders/Orders";
+import CreateOrder from "./pages/orders/CreateOrder";
 import Reports from "./pages/reports/Reports";
 
 const App: React.FC = () => {
@@ -62,6 +63,14 @@ const App: React.FC = () => {
                 element={
                   <PrivateRoute>
                     <Orders />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/orders/create"
+                element={
+                  <PrivateRoute>
+                    <CreateOrder />
                   </PrivateRoute>
                 }
               />

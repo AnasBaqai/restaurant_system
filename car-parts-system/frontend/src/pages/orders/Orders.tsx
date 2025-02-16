@@ -25,19 +25,10 @@ import {
   Alert,
   Snackbar,
 } from "@mui/material";
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-} from "@mui/icons-material";
+import { Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux";
-import {
-  getOrders,
-  createOrder,
-  updateOrderStatus,
-  CreateOrderRequest,
-} from "../../store/slices/ordersSlice";
-import { getParts } from "../../store/slices/partsSlice";
+import { getOrders, updateOrderStatus } from "../../store/slices/ordersSlice";
 
 interface OrderItem {
   part: string;
@@ -57,12 +48,6 @@ interface Order {
   createdAt: string;
 }
 
-interface OrderFormData {
-  items: OrderItem[];
-  customerName?: string;
-  customerPhone?: string;
-}
-
 interface PaymentDialogData {
   orderId: string;
   orderNumber: string;
@@ -72,8 +57,8 @@ interface PaymentDialogData {
 }
 
 const Orders: React.FC = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const [openDialog, setOpenDialog] = useState(false);
   const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
   const [paymentData, setPaymentData] = useState<PaymentDialogData>({
     orderId: "",
@@ -89,111 +74,16 @@ const Orders: React.FC = () => {
     message: "",
     severity: "info",
   });
-  const [formData, setFormData] = useState<OrderFormData>({
-    items: [{ part: "", quantity: 1, price: 0 }],
-    customerName: "",
-    customerPhone: "",
-  });
 
   const dispatch = useAppDispatch();
   const { orders, loading } = useAppSelector((state) => state.orders);
-  const { parts } = useAppSelector((state) => state.parts);
 
   useEffect(() => {
     dispatch(getOrders());
-    dispatch(getParts());
   }, [dispatch]);
 
   const handleAddOrder = () => {
-    setFormData({
-      items: [{ part: "", quantity: 1, price: 0 }],
-      customerName: "",
-      customerPhone: "",
-    });
-    setOpenDialog(true);
-  };
-
-  const handleAddItem = () => {
-    setFormData((prev) => ({
-      ...prev,
-      items: [...prev.items, { part: "", quantity: 1, price: 0 }],
-    }));
-  };
-
-  const handleRemoveItem = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      items: prev.items.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleItemChange = (
-    index: number,
-    field: keyof OrderItem,
-    value: string | number
-  ) => {
-    setFormData((prev) => {
-      const newItems = [...prev.items];
-      if (field === "part") {
-        const selectedPart = parts.find((p) => p._id === value);
-        newItems[index] = {
-          ...newItems[index],
-          [field]: value as string,
-          price: selectedPart ? selectedPart.price : 0,
-        };
-      } else {
-        newItems[index] = {
-          ...newItems[index],
-          [field]: value,
-        };
-      }
-      return { ...prev, items: newItems };
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      // Validate form data
-      if (formData.items.some((item) => !item.part)) {
-        setAlertInfo({
-          open: true,
-          message: "Please select parts for all items",
-          severity: "error",
-        });
-        return;
-      }
-
-      if (formData.items.some((item) => item.quantity < 1)) {
-        setAlertInfo({
-          open: true,
-          message: "Quantity must be at least 1 for all items",
-          severity: "error",
-        });
-        return;
-      }
-
-      const total = calculateTotal(formData.items);
-      const orderData: CreateOrderRequest = {
-        ...formData,
-        totalAmount: total,
-        status: "PENDING",
-      };
-
-      const result = await dispatch(createOrder(orderData)).unwrap();
-      setOpenDialog(false);
-      setAlertInfo({
-        open: true,
-        message: `Order ${result.orderNumber} created successfully. Waiting for admin approval.`,
-        severity: "success",
-      });
-    } catch (error: any) {
-      setAlertInfo({
-        open: true,
-        message: error.message || "Failed to create order",
-        severity: "error",
-      });
-    }
+    navigate("/orders/create");
   };
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
@@ -216,10 +106,6 @@ const Orders: React.FC = () => {
         severity: "error",
       });
     }
-  };
-
-  const calculateTotal = (items: OrderItem[]) => {
-    return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
   const getStatusColor = (status: string) => {
@@ -475,120 +361,6 @@ const Orders: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
-
-      <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <form onSubmit={handleSubmit}>
-          <DialogTitle>Create New Order</DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
-                <Typography variant="h6">Order Items</Typography>
-              </Grid>
-              {formData.items.map((item, index) => (
-                <Grid item xs={12} key={index}>
-                  <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                    <TextField
-                      select
-                      label="Part"
-                      value={item.part}
-                      onChange={(e) =>
-                        handleItemChange(index, "part", e.target.value)
-                      }
-                      sx={{ flexGrow: 1 }}
-                      required
-                    >
-                      {parts.map((part) => (
-                        <MenuItem key={part._id} value={part._id}>
-                          {part.name} - ${part.price}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                    <TextField
-                      type="number"
-                      label="Quantity"
-                      value={item.quantity}
-                      onChange={(e) =>
-                        handleItemChange(
-                          index,
-                          "quantity",
-                          parseInt(e.target.value)
-                        )
-                      }
-                      sx={{ width: 100 }}
-                      inputProps={{ min: 1 }}
-                      required
-                    />
-                    <IconButton
-                      color="error"
-                      onClick={() => handleRemoveItem(index)}
-                      disabled={formData.items.length === 1}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                </Grid>
-              ))}
-              <Grid item xs={12}>
-                <Button
-                  type="button"
-                  variant="outlined"
-                  onClick={handleAddItem}
-                  startIcon={<AddIcon />}
-                >
-                  Add Item
-                </Button>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="h6" sx={{ mt: 2 }}>
-                  Order Details
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Customer Name"
-                  fullWidth
-                  value={formData.customerName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      customerName: e.target.value,
-                    }))
-                  }
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  label="Customer Phone"
-                  fullWidth
-                  value={formData.customerPhone}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      customerPhone: e.target.value,
-                    }))
-                  }
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="h6">
-                  Total: ${calculateTotal(formData.items).toFixed(2)}
-                </Typography>
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-            <Button type="submit" variant="contained">
-              Create Order
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
 
       <Dialog
         open={openPaymentDialog}
