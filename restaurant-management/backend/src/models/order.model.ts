@@ -38,6 +38,8 @@ export interface IOrder extends Document {
   total: number;
   paymentMethod?: PaymentMethod;
   paymentStatus: boolean;
+  cashAmount?: number;
+  changeAmount?: number;
   notes?: string;
 }
 
@@ -119,6 +121,14 @@ const orderSchema = new Schema<IOrder>(
     paymentStatus: {
       type: Boolean,
       default: false,
+    },
+    cashAmount: {
+      type: Number,
+      min: 0,
+    },
+    changeAmount: {
+      type: Number,
+      min: 0,
     },
     notes: {
       type: String,

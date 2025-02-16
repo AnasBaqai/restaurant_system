@@ -69,12 +69,14 @@ class OrderService {
 
   async processPayment(
     id: string,
-    paymentMethod: PaymentMethod
+    paymentMethod: PaymentMethod,
+    cashAmount?: number
   ): Promise<Order> {
     const response = await api.patch<ApiResponse<{ order: Order }>>(
       `/orders/${id}/payment`,
       {
         paymentMethod,
+        cashAmount,
       }
     );
     return response.data.data.order;

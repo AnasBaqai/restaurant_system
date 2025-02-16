@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { Order, OrderStatus } from "../models/order.model";
+import { Order, OrderStatus, PaymentMethod } from "../models/order.model";
 import { MenuItem } from "../models/menu.model";
 import { Table, TableStatus } from "../models/table.model";
 import { AppError } from "../middleware/errorHandler";
@@ -241,15 +241,66 @@ export const processPayment = async (
   next: NextFunction
 ) => {
   try {
-    const { paymentMethod } = req.body;
+    const { paymentMethod, cashAmount } = req.body;
+    console.log("Processing payment:", {
+      orderId: req.params.id,
+      paymentMethod,
+      cashAmount,
+      body: req.body,
+    });
+
     const order = await Order.findById(req.params.id);
 
     if (!order) {
+      console.log("Order not found:", { orderId: req.params.id });
       return next(new AppError("No order found with that ID", 404));
     }
 
     if (order.paymentStatus) {
+      console.log("Order already paid:", {
+        orderId: order._id,
+        currentPaymentMethod: order.paymentMethod,
+      });
       return next(new AppError("Order has already been paid", 400));
+    }
+
+    // If payment is by cash, validate cash amount and calculate change
+    if (paymentMethod === PaymentMethod.CASH) {
+      console.log("Validating cash payment:", {
+        orderId: order._id,
+        total: order.total,
+        providedCashAmount: cashAmount,
+      });
+
+      if (!cashAmount) {
+        console.log("Cash amount missing for cash payment:", {
+          orderId: order._id,
+          paymentMethod,
+          cashAmount,
+        });
+        return next(
+          new AppError("Cash amount is required for cash payment", 400)
+        );
+      }
+
+      if (cashAmount < order.total) {
+        console.log("Insufficient cash amount:", {
+          orderId: order._id,
+          total: order.total,
+          cashAmount,
+          difference: order.total - cashAmount,
+        });
+        return next(new AppError("Cash amount is less than total amount", 400));
+      }
+
+      order.cashAmount = cashAmount;
+      order.changeAmount = cashAmount - order.total;
+
+      console.log("Cash payment validated:", {
+        orderId: order._id,
+        cashAmount: order.cashAmount,
+        changeAmount: order.changeAmount,
+      });
     }
 
     order.paymentMethod = paymentMethod;
@@ -268,6 +319,14 @@ export const processPayment = async (
       }
     );
 
+    console.log("Payment processed successfully:", {
+      orderId: order._id,
+      paymentMethod: order.paymentMethod,
+      total: order.total,
+      cashAmount: order.cashAmount,
+      changeAmount: order.changeAmount,
+    });
+
     res.status(200).json({
       status: "success",
       data: {
@@ -275,6 +334,11 @@ export const processPayment = async (
       },
     });
   } catch (error) {
+    console.error("Error processing payment:", {
+      orderId: req.params.id,
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     next(error);
   }
 };

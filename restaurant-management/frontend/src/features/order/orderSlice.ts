@@ -74,11 +74,15 @@ export const updateOrderStatus = createAsyncThunk(
 export const processPayment = createAsyncThunk(
   "order/processPayment",
   async (
-    { id, paymentMethod }: { id: string; paymentMethod: PaymentMethod },
+    {
+      id,
+      paymentMethod,
+      cashAmount,
+    }: { id: string; paymentMethod: PaymentMethod; cashAmount?: number },
     { rejectWithValue }
   ) => {
     try {
-      return await orderService.processPayment(id, paymentMethod);
+      return await orderService.processPayment(id, paymentMethod, cashAmount);
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to process payment"

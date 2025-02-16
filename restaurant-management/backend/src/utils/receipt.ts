@@ -16,6 +16,8 @@ type GenerateReceiptInput = {
   total: number;
   paymentMethod?: string;
   paymentStatus: boolean;
+  cashAmount?: number;
+  changeAmount?: number;
 };
 
 export const generateReceipt = (order: GenerateReceiptInput): string => {
@@ -75,6 +77,14 @@ export const generateReceipt = (order: GenerateReceiptInput): string => {
       `                Payment Status: ${
         order.paymentStatus ? "PAID" : "UNPAID"
       }`,
+      ...(order.paymentMethod === "cash" && order.cashAmount
+        ? [
+            `                Cash Amount: $${order.cashAmount.toFixed(2)}`,
+            `                Change Due: $${(order.changeAmount || 0).toFixed(
+              2
+            )}`,
+          ]
+        : []),
       "",
       "            Thank you for dining with us!",
       "                Please come again",

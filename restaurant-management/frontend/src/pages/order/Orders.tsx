@@ -93,6 +93,7 @@ const Orders = () => {
   const [selectedMenuItems, setSelectedMenuItems] = useState<string[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [cashAmount, setCashAmount] = useState<number | null>(null);
 
   // Group menu items by category
   const categorizedItems = menuItems.reduce(
@@ -127,10 +128,15 @@ const Orders = () => {
         processPayment({
           id: selectedOrder._id,
           paymentMethod: selectedPaymentMethod,
+          cashAmount:
+            selectedPaymentMethod === PaymentMethod.CASH && cashAmount !== null
+              ? cashAmount
+              : undefined,
         })
       );
       setPaymentDialog(false);
       setSelectedOrder(null);
+      setCashAmount(null);
     }
   };
 
@@ -576,13 +582,43 @@ const Orders = () => {
               </MenuItem>
             </Select>
           </FormControl>
+
+          {selectedPaymentMethod === PaymentMethod.CASH && selectedOrder && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" gutterBottom>
+                Total Amount: ${selectedOrder.total.toFixed(2)}
+              </Typography>
+              <TextField
+                fullWidth
+                label="Cash Amount"
+                type="number"
+                value={cashAmount || ""}
+                onChange={(e) => setCashAmount(Number(e.target.value))}
+                error={!!cashAmount && cashAmount < (selectedOrder?.total || 0)}
+                helperText={
+                  cashAmount && cashAmount < (selectedOrder?.total || 0)
+                    ? "Cash amount must be greater than or equal to total amount"
+                    : cashAmount
+                    ? `Change to return: $${(
+                        cashAmount - selectedOrder.total
+                      ).toFixed(2)}`
+                    : ""
+                }
+                sx={{ mt: 1 }}
+              />
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setPaymentDialog(false)}>Cancel</Button>
           <Button
             onClick={handlePaymentSubmit}
             variant="contained"
-            disabled={isLoading}
+            disabled={
+              isLoading ||
+              (selectedPaymentMethod === PaymentMethod.CASH &&
+                (!cashAmount || cashAmount < (selectedOrder?.total || 0)))
+            }
           >
             {isLoading ? "Processing..." : "Confirm Payment"}
           </Button>
