@@ -14,13 +14,12 @@ const router = Router();
 // Protect all routes after this middleware
 router.use(protect);
 
-// Public routes
+// Public routes (accessible by all authenticated users)
 router.get("/", getAllMenuItems);
 router.get("/:id", getMenuItem);
 
-// Admin only routes
-router.use(restrictTo(UserRole.ADMIN));
-
+// Admin and Manager only routes
+router.use(restrictTo(UserRole.ADMIN, UserRole.MANAGER));
 router.post("/", createMenuItem);
 router.patch("/:id", updateMenuItem);
 router.delete("/:id", deleteMenuItem);

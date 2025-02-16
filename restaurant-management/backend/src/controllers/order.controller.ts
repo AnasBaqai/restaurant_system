@@ -146,7 +146,8 @@ export const getAllOrders = async (
   try {
     const orders = await Order.find()
       .populate("waiter", "name")
-      .populate("items.menuItem", "name price");
+      .populate("items.menuItem", "name price")
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       status: "success",
@@ -405,6 +406,227 @@ export const generateOrderReceipt = async (
     console.error("Error in generateOrderReceipt:", {
       error: error instanceof Error ? error.message : error,
       orderId: req.params.id,
+    });
+    next(error);
+  }
+};
+
+// Update order table
+export const updateOrderTable = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    console.log("Update order table request:", {
+      orderId: req.params.id,
+      newTable: req.body.table,
+      userId: req.user?._id,
+      userRole: req.user?.role,
+    });
+
+    const { table: newTable } = req.body;
+    const order = await Order.findById(req.params.id)
+      .populate("waiter", "name")
+      .populate("items.menuItem", "name price");
+
+    if (!order) {
+      console.log("Order not found:", {
+        orderId: req.params.id,
+        requestedTable: newTable,
+      });
+      return next(new AppError("No order found with that ID", 404));
+    }
+
+    // Check if order can be edited
+    if (order.status === OrderStatus.COMPLETED || order.paymentStatus) {
+      console.log("Cannot change table - order completed or paid:", {
+        orderId: order._id,
+        status: order.status,
+        paymentStatus: order.paymentStatus,
+      });
+      return next(
+        new AppError("Cannot change table for completed or paid orders", 400)
+      );
+    }
+
+    // Validate new table exists and is available
+    const newTableDoc = await Table.findOne({ tableNumber: newTable });
+    if (!newTableDoc) {
+      console.log("New table not found:", {
+        tableNumber: newTable,
+      });
+      return next(new AppError(`Table ${newTable} not found`, 404));
+    }
+
+    if (
+      newTableDoc.status !== TableStatus.AVAILABLE &&
+      newTableDoc.tableNumber !== order.table
+    ) {
+      console.log("New table not available:", {
+        tableNumber: newTable,
+        status: newTableDoc.status,
+      });
+      return next(new AppError(`Table ${newTable} is not available`, 400));
+    }
+
+    // Update old table status if different table
+    if (order.table !== newTable) {
+      console.log("Updating old table status:", {
+        oldTable: order.table,
+        newTable: newTable,
+      });
+      await Table.findOneAndUpdate(
+        { tableNumber: order.table },
+        {
+          status: TableStatus.AVAILABLE,
+          currentOrder: null,
+          currentWaiter: null,
+        }
+      );
+    }
+
+    // Update new table status
+    await Table.findOneAndUpdate(
+      { tableNumber: newTable },
+      {
+        status: TableStatus.OCCUPIED,
+        currentOrder: order.orderNumber,
+        currentWaiter: order.waiter,
+      }
+    );
+
+    // Update order with new table
+    order.table = newTable;
+    await order.save();
+
+    console.log("Table change completed successfully:", {
+      orderId: order._id,
+      oldTable: order.table,
+      newTable: newTable,
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        order,
+      },
+    });
+  } catch (error) {
+    console.error("Error changing table:", {
+      orderId: req.params.id,
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    next(error);
+  }
+};
+
+// Update order
+export const updateOrder = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    console.log("Update order request:", {
+      orderId: req.params.id,
+      body: req.body,
+      userId: req.user._id,
+      userRole: req.user.role,
+    });
+
+    const order = await Order.findById(req.params.id)
+      .populate("waiter", "name")
+      .populate("items.menuItem", "name price");
+
+    if (!order) {
+      console.log("Order not found:", { orderId: req.params.id });
+      return next(new AppError("No order found with that ID", 404));
+    }
+
+    // Check if order can be edited
+    if (order.status === OrderStatus.COMPLETED || order.paymentStatus) {
+      console.log("Cannot edit completed or paid order:", {
+        orderId: order._id,
+        status: order.status,
+        paymentStatus: order.paymentStatus,
+      });
+      return next(new AppError("Cannot edit completed or paid orders", 400));
+    }
+
+    const { items, notes } = req.body;
+
+    // Calculate new totals if items are being updated
+    if (items) {
+      let subtotal = 0;
+      for (const item of items) {
+        const menuItem = await MenuItem.findById(item.menuItem);
+        if (!menuItem) {
+          console.log("Menu item not found:", { itemId: item.menuItem });
+          return next(new AppError("Menu item not found", 404));
+        }
+
+        // Calculate item subtotal including customizations
+        let itemSubtotal = menuItem.price * item.quantity;
+        if (item.customizations) {
+          for (const customization of item.customizations) {
+            itemSubtotal += customization.price;
+          }
+        }
+        item.subtotal = itemSubtotal;
+        subtotal += itemSubtotal;
+      }
+
+      // Apply tax and service charge
+      const tax = subtotal * 0.1; // 10% tax
+      const serviceCharge = subtotal * 0.05; // 5% service charge
+      const total = subtotal + tax + serviceCharge;
+
+      // Update order with new calculations
+      order.items = items;
+      order.subtotal = subtotal;
+      order.tax = tax;
+      order.serviceCharge = serviceCharge;
+      order.total = total;
+
+      console.log("Order calculations updated:", {
+        orderId: order._id,
+        subtotal,
+        tax,
+        serviceCharge,
+        total,
+      });
+    }
+
+    // Update notes if provided
+    if (notes !== undefined) {
+      order.notes = notes;
+    }
+
+    await order.save();
+
+    // Populate the updated order
+    const updatedOrder = await Order.findById(order._id)
+      .populate("waiter", "name")
+      .populate("items.menuItem", "name price");
+
+    console.log("Order updated successfully:", {
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        order: updatedOrder,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating order:", {
+      orderId: req.params.id,
+      error: error instanceof Error ? error.message : error,
+      stack: error instanceof Error ? error.stack : undefined,
     });
     next(error);
   }

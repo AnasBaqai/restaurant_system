@@ -21,13 +21,10 @@ router.get("/", getAllTables);
 router.get("/available", getAvailableTables);
 router.get("/:id", getTable);
 
-// Routes for waiters and admin
-router.use(restrictTo(UserRole.WAITER, UserRole.ADMIN));
+// Routes for managers and admin
+router.use(restrictTo(UserRole.MANAGER, UserRole.ADMIN));
 router.patch("/:id/status", updateTableStatus);
 router.patch("/:id/waiter", assignWaiter);
-
-// Admin only routes
-router.use(restrictTo(UserRole.ADMIN));
 router.post("/", createTable);
 router.delete("/:id", deleteTable);
 

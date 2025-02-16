@@ -15,6 +15,20 @@ interface CreateOrderData {
   notes?: string;
 }
 
+interface UpdateOrderData {
+  table?: number;
+  items?: {
+    menuItem: string;
+    quantity: number;
+    customizations?: {
+      name: string;
+      option: string;
+      price: number;
+    }[];
+  }[];
+  notes?: string;
+}
+
 class OrderService {
   async createOrder(data: CreateOrderData): Promise<Order> {
     const response = await api.post<ApiResponse<{ order: Order }>>(
@@ -111,6 +125,34 @@ class OrderService {
     }
 
     return receipt;
+  }
+
+  async updateOrder(id: string, data: UpdateOrderData): Promise<Order> {
+    // Check if order can be edited
+    const order = await this.getOrderById(id);
+    if (order.status === OrderStatus.COMPLETED || order.paymentStatus) {
+      throw new Error("Cannot edit completed or paid orders");
+    }
+
+    const response = await api.patch<ApiResponse<{ order: Order }>>(
+      `/orders/${id}`,
+      data
+    );
+    return response.data.data.order;
+  }
+
+  async updateOrderTable(id: string, newTable: number): Promise<Order> {
+    // Check if order can be edited
+    const order = await this.getOrderById(id);
+    if (order.status === OrderStatus.COMPLETED || order.paymentStatus) {
+      throw new Error("Cannot change table for completed or paid orders");
+    }
+
+    const response = await api.patch<ApiResponse<{ order: Order }>>(
+      `/orders/${id}/table`,
+      { table: newTable }
+    );
+    return response.data.data.order;
   }
 }
 

@@ -13,8 +13,8 @@ const router = Router();
 // Protect all routes after this middleware
 router.use(protect);
 
-// Restrict to admin only
-router.use(restrictTo(UserRole.ADMIN));
+// Restrict to admin and manager only
+router.use(restrictTo(UserRole.ADMIN, UserRole.MANAGER));
 
 router.get("/daily-sales", getDailySalesReport);
 router.get("/waiter-performance", getWaiterPerformanceReport);

@@ -34,6 +34,7 @@ import {
 } from "@mui/icons-material";
 import { RootState } from "../../features/store";
 import { logout } from "../../features/auth/authSlice";
+import { UserRole } from "../../types";
 
 const drawerWidth = 240;
 
@@ -44,22 +45,6 @@ interface MenuItem {
   subItems?: MenuItem[];
 }
 
-const menuItems: MenuItem[] = [
-  { text: "Dashboard", icon: <Dashboard />, path: "/" },
-  {
-    text: "Menu",
-    icon: <Restaurant />,
-    path: "/menu",
-    subItems: [
-      { text: "All Items", icon: <Restaurant />, path: "/menu" },
-      { text: "Categories", icon: <CategoryIcon />, path: "/menu/categories" },
-    ],
-  },
-  { text: "Orders", icon: <Receipt />, path: "/orders" },
-  { text: "Tables", icon: <TableBar />, path: "/tables" },
-  { text: "Reports", icon: <Assessment />, path: "/reports" },
-];
-
 const Layout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -68,6 +53,55 @@ const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const [open, setOpen] = useState(true);
+
+  const isAdminOrManager =
+    user?.role === UserRole.ADMIN || user?.role === UserRole.MANAGER;
+
+  const menuItems: MenuItem[] = [
+    {
+      text: "Dashboard",
+      icon: <Dashboard />,
+      path: "/",
+    },
+    {
+      text: "Orders",
+      icon: <Receipt />,
+      path: "/orders",
+    },
+    {
+      text: "Tables",
+      icon: <TableBar />,
+      path: "/tables",
+    },
+    // Only show these items for admin or manager
+    ...(isAdminOrManager
+      ? [
+          {
+            text: "Menu",
+            icon: <Restaurant />,
+            path: "/menu",
+            subItems: [
+              {
+                text: "Menu Items",
+                icon: <Restaurant />,
+                path: "/menu",
+              },
+              {
+                text: "Categories",
+                icon: <CategoryIcon />,
+                path: "/menu/categories",
+              },
+            ],
+          },
+          {
+            text: "Reports",
+            icon: <Assessment />,
+            path: "/reports",
+          },
+        ]
+      : []),
+  ];
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
