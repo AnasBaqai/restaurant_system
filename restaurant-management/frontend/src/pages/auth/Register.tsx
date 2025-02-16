@@ -18,12 +18,24 @@ import {
   Grow,
   Slide,
   SelectChangeEvent,
+  InputAdornment,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { register } from "../../features/auth/authSlice";
 import { RootState } from "../../features/store";
 import { AppDispatch } from "../../features/store";
 import { UserRole } from "../../types";
+import {
+  Email as EmailIcon,
+  Lock as LockIcon,
+  Person as PersonIcon,
+  Restaurant as RestaurantIcon,
+  Room as RoomIcon,
+  Kitchen as KitchenIcon,
+  SupervisorAccount as ManagerIcon,
+  AdminPanelSettings as AdminIcon,
+  Work as RoleIcon,
+} from "@mui/icons-material";
 
 const BackgroundContainer = styled(Box)({
   minHeight: "100vh",
@@ -53,12 +65,22 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  backdropFilter: "blur(10px)",
-  backgroundColor: "rgba(255, 255, 255, 0.9)",
+  backgroundColor: "rgba(255, 255, 255, 1)",
   borderRadius: theme.spacing(2),
   boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
   width: "100%",
   maxWidth: "400px",
+  position: "relative",
+  overflow: "hidden",
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: "4px",
+    background: "linear-gradient(45deg, #8B4513, #D2691E)",
+  },
 }));
 
 const RightPanel = styled(Box)(({ theme }) => ({
@@ -74,16 +96,20 @@ const RightPanel = styled(Box)(({ theme }) => ({
 }));
 
 const RoleCard = styled(Box)(({ theme }) => ({
-  backgroundColor: "rgba(255, 255, 255, 0.1)",
+  backgroundColor: "rgba(0, 0, 0, 0.5)",
   padding: theme.spacing(3),
   borderRadius: theme.spacing(2),
-  backdropFilter: "blur(5px)",
   marginBottom: theme.spacing(2),
   width: "100%",
-  transition: "transform 0.3s ease, background-color 0.3s ease",
+  transition: "all 0.3s ease",
   "&:hover": {
-    transform: "translateY(-5px)",
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    transform: "translateY(-5px) scale(1.02)",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+  },
+  "& .MuiSvgIcon-root": {
+    fontSize: "2rem",
+    marginBottom: theme.spacing(1),
+    color: theme.palette.secondary.light,
   },
 }));
 
@@ -119,9 +145,11 @@ const StyledFormControl = styled(FormControl)(({ theme }) => ({
 
 const AnimatedButton = styled(Button)(({ theme }) => ({
   transition: "all 0.3s ease-in-out",
+  background: "linear-gradient(45deg, #8B4513 30%, #D2691E 90%)",
   "&:hover": {
     transform: "translateY(-2px)",
     boxShadow: theme.shadows[4],
+    background: "linear-gradient(45deg, #654321 30%, #8B4513 90%)",
   },
 }));
 
@@ -168,19 +196,26 @@ const Register = () => {
       <ContentContainer maxWidth="lg">
         <StyledPaper elevation={6}>
           <Grow in timeout={800}>
-            <Typography
-              variant="h4"
-              sx={{
-                mb: 3,
-                fontWeight: 600,
-                color: "primary.main",
-                textAlign: "center",
-              }}
-            >
-              Restaurant Management
-            </Typography>
+            <Box sx={{ textAlign: "center", mb: 3 }}>
+              <RestaurantIcon
+                sx={{ fontSize: 40, color: "primary.main", mb: 2 }}
+              />
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 600,
+                  color: "primary.main",
+                  textAlign: "center",
+                }}
+              >
+                Restaurant Management
+              </Typography>
+            </Box>
           </Grow>
-          <Typography variant="h5" sx={{ mb: 3, fontWeight: 500 }}>
+          <Typography
+            variant="h5"
+            sx={{ mb: 3, fontWeight: 500, color: "text.primary" }}
+          >
             Create Account
           </Typography>
           <Box
@@ -208,6 +243,13 @@ const Register = () => {
                   autoFocus
                   value={formData.name}
                   onChange={handleInputChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon color="primary" />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </Box>
             </Slide>
@@ -223,6 +265,13 @@ const Register = () => {
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleInputChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailIcon color="primary" />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </Box>
             </Slide>
@@ -239,6 +288,13 @@ const Register = () => {
                   autoComplete="new-password"
                   value={formData.password}
                   onChange={handleInputChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon color="primary" />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
               </Box>
             </Slide>
@@ -253,11 +309,40 @@ const Register = () => {
                     value={formData.role}
                     label="Role"
                     onChange={handleRoleChange}
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <RoleIcon color="primary" />
+                      </InputAdornment>
+                    }
                   >
-                    <MenuItem value={UserRole.WAITER}>Waiter</MenuItem>
-                    <MenuItem value={UserRole.CHEF}>Chef</MenuItem>
-                    <MenuItem value={UserRole.MANAGER}>Manager</MenuItem>
-                    <MenuItem value={UserRole.ADMIN}>Admin</MenuItem>
+                    <MenuItem value={UserRole.WAITER}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <RoomIcon /> Waiter
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value={UserRole.CHEF}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <KitchenIcon /> Chef
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value={UserRole.MANAGER}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <ManagerIcon /> Manager
+                      </Box>
+                    </MenuItem>
+                    <MenuItem value={UserRole.ADMIN}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <AdminIcon /> Admin
+                      </Box>
+                    </MenuItem>
                   </Select>
                 </StyledFormControl>
               </Box>
@@ -278,9 +363,10 @@ const Register = () => {
                 variant="body2"
                 sx={{
                   textDecoration: "none",
+                  color: "primary.main",
                   transition: "color 0.3s",
                   "&:hover": {
-                    color: "primary.main",
+                    color: "primary.dark",
                   },
                 }}
               >
@@ -304,8 +390,9 @@ const Register = () => {
               <Box sx={{ mt: 4 }}>
                 <Slide direction="left" in timeout={600}>
                   <RoleCard>
+                    <RoomIcon />
                     <Typography variant="h6" sx={{ mb: 1 }}>
-                      👨‍🍳 Waiter
+                      Waiter
                     </Typography>
                     <Typography variant="body1" sx={{ opacity: 0.9 }}>
                       Take orders, manage tables, and provide excellent service
@@ -315,8 +402,9 @@ const Register = () => {
 
                 <Slide direction="left" in timeout={800}>
                   <RoleCard>
+                    <KitchenIcon />
                     <Typography variant="h6" sx={{ mb: 1 }}>
-                      👨‍🍳 Chef
+                      Chef
                     </Typography>
                     <Typography variant="body1" sx={{ opacity: 0.9 }}>
                       Manage kitchen operations and track order preparation
@@ -326,8 +414,9 @@ const Register = () => {
 
                 <Slide direction="left" in timeout={1000}>
                   <RoleCard>
+                    <ManagerIcon />
                     <Typography variant="h6" sx={{ mb: 1 }}>
-                      👨‍💼 Manager
+                      Manager
                     </Typography>
                     <Typography variant="body1" sx={{ opacity: 0.9 }}>
                       Oversee operations, staff, and restaurant performance
@@ -337,8 +426,9 @@ const Register = () => {
 
                 <Slide direction="left" in timeout={1200}>
                   <RoleCard>
+                    <AdminIcon />
                     <Typography variant="h6" sx={{ mb: 1 }}>
-                      👨‍💼 Admin
+                      Admin
                     </Typography>
                     <Typography variant="body1" sx={{ opacity: 0.9 }}>
                       Full system control and configuration management
